@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model ProductionReport {
+  id         Int              @id @default(autoincrement())
+  machine    String
+  date       DateTime
+  shift      String
+  supervisor String?
+  preparedBy String
+  remark     String?
+  items      ProductionItem[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([date])
+  @@index([machine, date])
+  @@map("production_reports")
+}
+
+model ProductionItem {
+  id             Int              @id @default(autoincrement())
+  reportId       Int
+  report         ProductionReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  serialNumber   String
+  orderNumber    String
+  partNumber     String
+  color          String?
+  productName    String
+  quantity       Int
+  processing     String?
+  barcode        String?
+  formula        String?
+  skinProcessing String?
+  preCustomer    String?
+  remark         String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([reportId])
+  @@index([orderNumber])
+  @@index([partNumber])
+  @@map("production_items")
+}
