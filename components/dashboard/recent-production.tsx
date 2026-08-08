@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react"
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const productionRecords = [
@@ -17,7 +18,7 @@ export function RecentProduction() {
     <Card>
       <CardHeader>
         <div><CardTitle>最近生產紀錄</CardTitle><CardDescription className="mt-1">全廠最新生產與訂單進度</CardDescription></div>
-        <Button variant="outline" className="hidden sm:inline-flex">查看全部 <ArrowRight data-icon="inline-end" /></Button>
+        <Link href="/production" className={buttonVariants({ variant: "outline", className: "hidden sm:inline-flex" })}>查看全部 <ArrowRight data-icon="inline-end" /></Link>
       </CardHeader>
       <CardContent className="overflow-x-auto px-0 pb-1">
         <table className="w-full min-w-[820px] text-left">

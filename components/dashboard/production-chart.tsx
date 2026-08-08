@@ -35,7 +35,7 @@ export function DailyProductionChart() {
             {[0, 25, 50, 75].map((top) => <div key={top} className="absolute inset-x-0 h-px bg-slate-100" style={{ top: `${top}%` }} />)}
             {dailyValues.map((value, index) => (
               <div key={index} className="relative z-10 flex h-full flex-1 items-end justify-center gap-0.5">
-                <div className="w-full max-w-3 rounded-t-sm bg-blue-600 transition hover:bg-blue-500" style={{ height: `${value}%` }} />
+                <div className="w-full max-w-3 rounded-t-sm bg-blue-600 hover:bg-blue-500" style={{ height: `${value}%` }} />
                 <div className="w-full max-w-3 rounded-t-sm bg-blue-200" style={{ height: `${targetValues[index]}%` }} />
                 {index % 2 === 0 && <span className="absolute -bottom-5 text-[10px] text-slate-400">{String(index + 6).padStart(2, "0")} 時</span>}
               </div>
@@ -60,7 +60,7 @@ export function WeeklyProductionChart() {
           {[25, 50, 75].map((top) => <div key={top} className="absolute inset-x-0 h-px bg-slate-100" style={{ top: `${top}%` }} />)}
           {weeklyValues.map((item) => (
             <div key={item.day} className="relative z-10 flex h-full flex-1 items-end justify-center">
-              <div className="w-full max-w-8 rounded-t-md bg-blue-100 p-1 transition hover:bg-blue-200" style={{ height: `${item.value}%` }}><div className="h-full w-full rounded-t bg-blue-600" /></div>
+              <div className="w-full max-w-8 rounded-t-md bg-blue-100 p-1 hover:bg-blue-200" style={{ height: `${item.value}%` }}><div className="h-full w-full rounded-t bg-blue-600" /></div>
               <span className="absolute -bottom-5 text-[10px] font-medium text-slate-500">週{item.day}</span>
             </div>
           ))}

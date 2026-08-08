@@ -1,5 +1,6 @@
 import { ArrowRight, CircleAlert } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const statusItems = [
@@ -13,7 +14,7 @@ export function MachineStatus() {
     <Card>
       <CardHeader>
         <div><CardTitle>機台狀態</CardTitle><CardDescription className="mt-1">全廠機台即時狀況</CardDescription></div>
-        <Button variant="ghost" size="icon" aria-label="查看所有機台"><ArrowRight /></Button>
+        <Link href="/production" className={buttonVariants({ variant: "ghost", size: "icon" })} aria-label="查看所有機台"><ArrowRight /></Link>
       </CardHeader>
       <CardContent className="space-y-3">
         {statusItems.map((item) => (

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import {
   ArrowLeft,
@@ -8,6 +8,7 @@ import {
   ClipboardCopy,
   Factory,
   FileText,
+  ScanText,
   Plus,
   RotateCcw,
   Save,
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { OCR_STORAGE_KEY, type OcrResult } from "@/lib/ocr"
 
 const fields = [
   ["serial", "編別", "w-20"],
@@ -65,7 +67,42 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 
 export function DailyProductionForm() {
   const [rows, setRows] = useState(initialRows)
+  const [machine, setMachine] = useState("八號｜射出成型機")
+  const [date, setDate] = useState("2026-07-18")
+  const [shift, setShift] = useState("早班（06:00–14:00）")
+  const [preparedBy, setPreparedBy] = useState("陳志明")
+  const [notes, setNotes] = useState("")
   const nextId = useRef(3)
+
+  useEffect(() => {
+    const storedResult = sessionStorage.getItem(OCR_STORAGE_KEY)
+    if (!storedResult) return
+
+    try {
+      const ocr = JSON.parse(storedResult) as OcrResult
+      const timer = window.setTimeout(() => {
+        const measurements = [ocr.width && `寬度：${ocr.width}`, ocr.weight && `重量：${ocr.weight}`].filter(Boolean).join("；")
+        setMachine(ocr.machine)
+        setDate(ocr.date)
+        setShift(ocr.shift)
+        setPreparedBy(ocr.operator)
+        setNotes(ocr.remarks)
+        setRows([createRow(nextId.current++, {
+          partNo: ocr.productNumber,
+          productName: ocr.productName,
+          color: ocr.color,
+          quantity: ocr.quantity,
+          processing: ocr.process,
+          formula: ocr.formula,
+          remarks: [ocr.remarks, measurements].filter(Boolean).join("；"),
+        })])
+      }, 0)
+      sessionStorage.removeItem(OCR_STORAGE_KEY)
+      return () => window.clearTimeout(timer)
+    } catch {
+      sessionStorage.removeItem(OCR_STORAGE_KEY)
+    }
+  }, [])
 
   const totalQuantity = useMemo(
     () => rows.reduce((total, row) => total + (Number.parseFloat(row.quantity) || 0), 0),
@@ -120,6 +157,7 @@ export function DailyProductionForm() {
             <p className="mt-2 text-sm text-slate-500">記錄每日機台生產明細、加工資訊與完成數量。</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="lg" render={<Link href="/production/scan" />}><ScanText data-icon="inline-start" />AI 辨識</Button>
             <Button variant="outline" size="lg"><Save data-icon="inline-start" />儲存草稿</Button>
             <Button variant="outline" size="lg" onClick={clearForm}><RotateCcw data-icon="inline-start" />清空</Button>
             <Button size="lg" className="bg-blue-600 hover:bg-blue-700"><Check data-icon="inline-start" />送出</Button>
@@ -129,9 +167,9 @@ export function DailyProductionForm() {
         <Card className="mb-4">
           <CardHeader className="border-b border-slate-100"><CardTitle>基本資料</CardTitle></CardHeader>
           <CardContent className="grid gap-4 pt-5 sm:grid-cols-2 lg:grid-cols-3">
-            <div><FieldLabel>機台</FieldLabel><select className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10" defaultValue="machine-08"><option value="machine-08">八號｜射出成型機</option><option value="machine-12">十二號｜精密加工機</option><option value="machine-16">十六號｜自動沖壓機</option></select></div>
-            <div><FieldLabel>日期</FieldLabel><Input type="date" defaultValue="2026-07-18" /></div>
-            <div className="sm:col-span-2 lg:col-span-1"><FieldLabel>班別</FieldLabel><select className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10" defaultValue="morning"><option value="morning">早班（06:00–14:00）</option><option value="afternoon">中班（14:00–22:00）</option><option value="night">晚班（22:00–06:00）</option></select></div>
+            <div><FieldLabel>機台</FieldLabel><Input value={machine} onChange={(event) => setMachine(event.target.value)} /></div>
+            <div><FieldLabel>日期</FieldLabel><Input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></div>
+            <div className="sm:col-span-2 lg:col-span-1"><FieldLabel>班別</FieldLabel><Input value={shift} onChange={(event) => setShift(event.target.value)} /></div>
           </CardContent>
         </Card>
 
@@ -189,9 +227,9 @@ export function DailyProductionForm() {
         </Card>
 
         <section className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px_240px]">
-          <Card><CardContent className="p-5"><FieldLabel>注意事項</FieldLabel><textarea className="min-h-24 w-full resize-y rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10" placeholder="請輸入交接事項、品質異常或其他注意事項…" /></CardContent></Card>
+          <Card><CardContent className="p-5"><FieldLabel>注意事項</FieldLabel><textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-24 w-full resize-y rounded-xl border border-slate-200 bg-white p-3 text-sm outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/10" placeholder="請輸入交接事項、品質異常或其他注意事項…" /></CardContent></Card>
           <Card><CardContent className="p-5"><FieldLabel>單位主管</FieldLabel><Input placeholder="主管姓名" /><div className="mt-5 border-b border-dashed border-slate-300 pb-2 text-xs text-slate-400">簽核欄位</div></CardContent></Card>
-          <Card><CardContent className="p-5"><FieldLabel>填表人</FieldLabel><Input defaultValue="陳志明" /><div className="mt-5 border-b border-dashed border-slate-300 pb-2 text-xs text-slate-400">填表人簽名</div></CardContent></Card>
+          <Card><CardContent className="p-5"><FieldLabel>填表人</FieldLabel><Input value={preparedBy} onChange={(event) => setPreparedBy(event.target.value)} /><div className="mt-5 border-b border-dashed border-slate-300 pb-2 text-xs text-slate-400">填表人簽名</div></CardContent></Card>
         </section>
 
         <div className="sticky bottom-0 z-20 -mx-4 mt-6 flex flex-wrap justify-end gap-2 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(15,23,42,.06)] backdrop-blur sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:rounded-2xl lg:border">
